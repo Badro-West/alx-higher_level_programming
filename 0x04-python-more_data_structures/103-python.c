@@ -4,47 +4,81 @@
 void print_python_bytes(PyObject *p);
 void print_python_list(PyObject *p);
 
-/**
- * process_python_object - Process a Python object
- *
- * @p: Python Object
- * Return: no return
- */
-void process_python_object(PyObject *p)
+void print_python_bytes(PyObject *p)
 {
-	if (PyBytes_Check(p))
-	{
-		print_python_bytes(p);
-	}
-	else if (PyList_Check(p))
-	{
-		print_python_list(p);
-	}
-	else
-	{
-		printf("  [ERROR] Invalid Python Object\n");
-	}
+    char *string;
+    long int size, i, limit;
+
+    printf("[.] bytes object info\n");
+    if (!PyBytes_Check(p))
+    {
+        printf("  [ERROR] Invalid Bytes Object\n");
+        return;
+    }
+
+    size = ((PyVarObject *)(p))->ob_size;
+    string = ((PyBytesObject *)p)->ob_sval;
+
+    printf("  size: %ld\n", size);
+    printf("  trying string: %s\n", string);
+
+    if (size >= 10)
+        limit = 10;
+    else
+        limit = size + 1;
+
+    printf("  first %ld bytes:", limit);
+
+    for (i = 0; i < limit; i++)
+        if (string[i] >= 0)
+            printf(" %02x", string[i]);
+        else
+            printf(" %02x", 256 + string[i]);
+
+    printf("\n");
+}
+
+void print_python_list(PyObject *p)
+{
+    long int size, i;
+    PyListObject *list;
+    PyObject *obj;
+
+    size = ((PyVarObject *)(p))->ob_size;
+    list = (PyListObject *)p;
+
+    printf("[*] Python list info\n");
+    printf("[*] Size of the Python List = %ld\n", size);
+    printf("[*] Allocated = %ld\n", list->allocated);
+
+    for (i = 0; i < size; i++)
+    {
+        obj = ((PyListObject *)p)->ob_item[i];
+        printf("Element %ld: %s\n", i, ((obj)->ob_type)->tp_name);
+        if (PyBytes_Check(obj))
+            print_python_bytes(obj);
+    }
 }
 
 int main()
 {
-	Py_Initialize();
+    Py_Initialize();
 
-	/* Example usage of process_python_object */
-	PyObject *sample_bytes = PyBytes_FromStringAndSize("Hello, World!", 13);
-	process_python_object(sample_bytes);
+    // Example usage
+    PyObject *sample_bytes = PyBytes_FromStringAndSize("Hello, World!", 13);
+    print_python_bytes(sample_bytes);
 
-	PyObject *sample_list = PyList_New(3);
-	PyList_SetItem(sample_list, 0, PyBytes_FromStringAndSize("Python", 6));
-	PyList_SetItem(sample_list, 1, PyBytes_FromStringAndSize("C", 1));
-	PyList_SetItem(sample_list, 2, PyBytes_FromStringAndSize("C++", 3));
-	process_python_object(sample_list);
+    PyObject *sample_list = PyList_New(3);
+    PyList_SetItem(sample_list, 0, PyBytes_FromStringAndSize("Python", 6));
+    PyList_SetItem(sample_list, 1, PyBytes_FromStringAndSize("C", 1));
+    PyList_SetItem(sample_list, 2, PyBytes_FromStringAndSize("C++", 3));
+    print_python_list(sample_list);
 
-	Py_DECREF(sample_bytes);
-	Py_DECREF(sample_list);
+    Py_DECREF(sample_bytes);
+    Py_DECREF(sample_list);
 
-	Py_Finalize();
+    Py_Finalize();
 
-	return 0;
+    return 0;
 }
 
