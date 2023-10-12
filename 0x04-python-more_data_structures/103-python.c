@@ -1,70 +1,50 @@
 #include <stdio.h>
 #include <Python.h>
 
+void print_python_bytes(PyObject *p);
+void print_python_list(PyObject *p);
+
 /**
- * print_python_bytes - Prints bytes information
+ * process_python_object - Process a Python object
  *
  * @p: Python Object
  * Return: no return
  */
-void print_python_bytes(PyObject *p)
+void process_python_object(PyObject *p)
 {
-	char *string;
-	long int size, i, limit;
-
-	printf("[.] bytes object info\n");
-	if (!PyBytes_Check(p))
+	if (PyBytes_Check(p))
 	{
-		printf("  [ERROR] Invalid Bytes Object\n");
-		return;
+		print_python_bytes(p);
 	}
-
-	size = ((PyVarObject *)(p))->ob_size;
-	string = ((PyBytesObject *)p)->ob_sval;
-
-	printf("  size: %ld\n", size);
-	printf("  trying string: %s\n", string);
-
-	if (size >= 10)
-		limit = 10;
+	else if (PyList_Check(p))
+	{
+		print_python_list(p);
+	}
 	else
-		limit = size + 1;
-
-	printf("  first %ld bytes:", limit);
-
-	for (i = 0; i < limit; i++)
-		if (string[i] >= 0)
-			printf(" %02x", string[i]);
-		else
-			printf(" %02x", 256 + string[i]);
-
-	printf("\n");
-}
-
-/**
- * print_python_list - Prints list information
- *
- * @p: Python Object
- * Return: no return
- */
-void print_python_list(PyObject *p)
-{
-	long int size, i;
-	PyListObject *list;
-	PyObject *obj;
-
-	size = ((PyVarObject *)(p))->ob_size;
-	list = (PyListObject *)p;
-
-	printf("[*] Python list info\n");
-	printf("[*] Size of the Python List = %ld\n", size);
-	printf("[*] Allocated = %ld\n", list->allocated);
-
-	for (i = 0; i < size; i++)
 	{
-		obj = ((PyListObject *)p)->ob_item[i];
-		printf("Element %ld: %s\n", i, ((obj)->ob_type)->tp_name);
-		if (PyBytes_Check(obj))
-			print_python_bytes(obj);
+		printf("  [ERROR] Invalid Python Object\n");
 	}
 }
+
+int main()
+{
+	Py_Initialize();
+
+	/* Example usage of process_python_object */
+	PyObject *sample_bytes = PyBytes_FromStringAndSize("Hello, World!", 13);
+	process_python_object(sample_bytes);
+
+	PyObject *sample_list = PyList_New(3);
+	PyList_SetItem(sample_list, 0, PyBytes_FromStringAndSize("Python", 6));
+	PyList_SetItem(sample_list, 1, PyBytes_FromStringAndSize("C", 1));
+	PyList_SetItem(sample_list, 2, PyBytes_FromStringAndSize("C++", 3));
+	process_python_object(sample_list);
+
+	Py_DECREF(sample_bytes);
+	Py_DECREF(sample_list);
+
+	Py_Finalize();
+
+	return 0;
+}
+
