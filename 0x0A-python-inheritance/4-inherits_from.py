@@ -1,12 +1,15 @@
 #!/usr/bin/python3
-""" module function is_kind_of_class """
+"""
+module only sub class of
+"""
 
 
-def is_kind_of_class(obj, a_class):
-    """Method that returns True if the object is an instance of,
-    or if the object is an instance of a class that inherited from,
-    the specified class ; otherwise False """
-    if isinstance(obj, a_class):
-        return (True)
+def inherits_from(obj, a_class):
+    """returns True if the object is an instance of a class
+       that inherited (directly or indirectly) from the specified class;
+       otherwise False.
+    """
+    if type(obj) != a_class:
+        return issubclass(type(obj), a_class)
     else:
-        return (False)
+        return False
